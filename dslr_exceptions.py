@@ -1,6 +1,6 @@
-class DataDescriptionError(Exception):
+class DataError(Exception):
     def __init__(self, message=""):
-        super(DataDescriptionError, self).__init__()
+        super(DataError, self).__init__()
         self.message = message
 
     def __str__(self):
