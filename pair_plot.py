@@ -21,12 +21,12 @@ axs = gspec.subplots()
 for y in range(nbFtr):
 	for x in range(nbFtr):
 		if x == y:
-			axs[y][x].hist(list(scData[pltFeatures[x]]))
+			axs[y][x].hist(scData[pltFeatures[x]])
 			if x:
 				axs[y][x].sharey(axs[0][0])
 
 		else:
-			axs[y][x].scatter(list(scData[pltFeatures[x]]), list(scData[pltFeatures[y]]), marker='.', c=colors, alpha=0.35)
+			axs[y][x].scatter(scData[pltFeatures[x]], scData[pltFeatures[y]], marker='.', c=colors, alpha=0.35)
 		axs[y][x].set(xlabel=shortenName(pltFeatures[x]), ylabel=shortenName(pltFeatures[y]))
 		axs[y][x].label_outer()
 
