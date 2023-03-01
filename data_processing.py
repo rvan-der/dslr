@@ -3,13 +3,19 @@ from data_description import *
 
 class DslrRobustScaler():
 
-	def __init__(self, data, numericFeatures, percentiles=(25,75)):
+	def __init__(self, data, numericFeatures=None, percentiles=(25,75)):
 		self.data = data
 		self.numericFeatures = numericFeatures
+		if not numericFeatures:
+			self.numericFeatures = []
+			for feature in data.columns:
+				if any([not isinstance(value, float) for value in data[feature]]):
+					continue
+				self.numericFeatures.append(feature)
 		self.percentiles = percentiles
-		self.medians = [median(data[feature]) for feature in numericFeatures]
+		self.medians = [median(data[feature]) for feature in self.numericFeatures]
 		self.ranges = [quantile(max(percentiles),100,data[feature]) - \
-		quantile(min(percentiles),100,data[feature]) for feature in numericFeatures]
+		quantile(min(percentiles),100,data[feature]) for feature in self.numericFeatures]
 
 
 	def featureScalingParams(self, feature):
