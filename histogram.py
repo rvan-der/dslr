@@ -13,13 +13,7 @@ colors = {"Gryffindor": "#AE0001", "Slytherin": "#2A623D",
 
 data = pd.read_csv('datasets/dataset_train.csv', index_col="Index").dropna()
 
-numericFeatures = ["Arithmancy", "Astronomy", "Herbology",
-                   "Defense Against the Dark Arts", "Divination",
-                   "Muggle Studies", "Ancient Runes", "History of Magic",
-                   "Transfiguration", "Potions", "Care of Magical Creatures",
-                   "Charms", "Flying"]
-
-scaler = DslrRobustScaler(data, numericFeatures, percentiles=(20, 80))
+scaler = DslrRobustScaler(data, percentiles=(20, 80))
 scData = scaler.scale()
 colorFeature = scData['Hogwarts House'].map(colors)
 
