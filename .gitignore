@@ -38,7 +38,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
-test.py
 htmlcov/
 .tox/
 .nox/
@@ -128,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#custom
+dslr_model.json
+houses.csv

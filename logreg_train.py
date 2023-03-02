@@ -1,7 +1,6 @@
 import sys
 import json
-import math
-import padas as pd
+import pandas as pd
 import numpy as np
 from data_processing import *
 
@@ -14,46 +13,41 @@ def prepare_data(data, modelFtrs, house):
 	return X, Y
 
 
-def sigmoid(x):
-	return 1 / (1 + math.exp(x))
-
-
 def logreg(X, Y, thetas, iters, lRate):
 	m = len(Y)
-	for i in range(iters):
+	for it in range(iters):
 		newThetas = []
-		x,y = X[i],Y[i]
 		for j in range(len(thetas)):
-			newThetas.append(thetas[j] - lRate / m * sum((sigmoid(np.dot(x,thetas)) - y) * x[j]))
+			gradient = 1 / m * sum((sigmoid(np.dot(X[i],thetas)) - Y[i]) * X[i][j] for i in range(m))
+			newThetas.append(thetas[j] - lRate * gradient)
 		thetas = newThetas
 	return thetas
 
 
 
 
-modelFtrs = ["Arithmancy","Astronomy","Herbology","Defense Against the Dark Arts","Divination","Muggle Studies","Ancient Runes","History of Magic","Transfiguration","Potions","Care of Magical Creatures","Charms","Flying"]
+modelFtrs = ["Astronomy","Herbology","Divination","Muggle Studies","Ancient Runes","History of Magic","Transfiguration","Charms","Flying"]
 nbModelFtrs = len(modelFtrs)
 learningRate = 0.001
 iterations = 100
 
 
 if __name__ == "__main__":
-	if sys.argc != 2:
+	if len(sys.argv) != 2:
 		sys.exit(f"Got {sys.argc - 1} arguments instead of 1")
 	fileName = sys.argv[1]
 
 	try:
-		rawData = pd.read_csv(fileName, index_col="Index").dropna()
+		data = pd.read_csv(fileName, index_col="Index").dropna()
 	except Exception as e:
 		sys.exit(f"An error occured while reading the dataset. {str(e)}")
 	
-	scaler = DslrRobustScaler(rawData, percentiles=(20,80))
+	scaler = DslrRobustScaler(data, percentiles=(20,80))
 	scaledData = scaler.scale()
 	
 	model = {"features": modelFtrs, "scaling": {}, "thetas": {}}
 	for feature in modelFtrs:
 		model["scaling"][feature] = scaler.featureScalingParams(feature)
-
 
 	for house in ["Gryffindor","Slytherin","Ravenclaw","Hufflepuff"]:
 		X,Y = prepare_data(scaledData, modelFtrs, house)
@@ -61,7 +55,7 @@ if __name__ == "__main__":
 
 	try:
 		with open("dslr_model.json", "w") as jsonFile:
-			json.dump(model, jsonFile)
+			json.dump(model, jsonFile, indent=4)
 	except Exception as e:
 		sys.exit(f"An error occured when saving the model to dslr_model.json: {str(e)}")
 
