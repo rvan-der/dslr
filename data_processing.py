@@ -28,6 +28,13 @@ class DslrRobustScaler():
 		return {"median":self.medians[featureIndex], "range":self.ranges[featureIndex]}
 
 
+	def allScalingParams(self):
+		model = {}
+		for i,feature in enumerate(self.numericFeatures):
+			model[feature] = {"median":self.medians[i], "range":self.ranges[i]}
+		return model
+
+
 	def scale(self):
 		scaledData = self.data.copy()
 		for i,feature in enumerate(self.numericFeatures):
@@ -37,7 +44,7 @@ class DslrRobustScaler():
 
 	def scaleToModel(self, model):
 		scaledData = self.data.copy()
-		for feature in model["features"]:
+		for feature in model["features"]["all"]:
 			median = model["scaling"][feature]["median"]
 			_range = model["scaling"][feature]["range"]
 			scaledData[feature] = scaledData[feature].apply(lambda x:(x - median) / _range)

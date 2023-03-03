@@ -6,12 +6,14 @@ from data_processing import *
 
 
 def predict(x, thetas):
-    return sigmoid(np.dot(x, thetas))
+    ret = sigmoid(np.dot(x, thetas))
+    return ret
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        sys.exit(f"Got {sys.argc - 1} arguments instead of 1")
+    argc = len(sys.argv)
+    if argc != 2:
+        sys.exit(f"Got {argc - 1} arguments instead of 1")
     fileName = sys.argv[1]
 
     try:
@@ -25,17 +27,25 @@ if __name__ == "__main__":
     except Exception as e:
         sys.exit(f"An error occured while reading the model file. {str(e)}")
 
+    for feature in model["features"]["all"]:
+        missing = data[feature].isnull()
+        data[feature] = [model["scaling"][feature]["median"] if missing[i] else x for i, x in enumerate(data[feature])]
+
     scaler = DslrRobustScaler(data, percentiles=(20,80))
     scaledData = scaler.scaleToModel(model)
+    print(scaledData.describe())
+    
     predictions = []
 
-    for _,student in scaledData.iterrows():
+    for studId, student in scaledData.iterrows():
         pred = ("", -1)
+        # print(studId)
         for house in ["Gryffindor", "Slytherin", "Ravenclaw", "Hufflepuff"]:
-            x = list(student[model["features"]]) + [1]
-            prob = predict(x, model["thetas"][house])
-            if prob > pred[1]:
-                pred = (house, prob)
+            x = [1] + list(student[model["features"][house]])
+            probability = predict(x, model["thetas"][house])
+            if probability > pred[1]:
+                pred = (house, probability)
+            # print(house,probability)
         predictions.append(pred[0])
 
     scaledData["prediction"] = predictions
