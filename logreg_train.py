@@ -15,13 +15,17 @@ def prepare_data(data, modelFtrs, house):
 
 
 def logreg(X, Y, thetas, iters, lRate):
+	print("plop")
 	m = len(Y)
 	for it in range(iters):
 		newThetas = []
+		grads = []
 		for j in range(len(thetas)):
 			gradient = 1 / m * sum((sigmoid(np.dot(X[i],thetas)) - Y[i]) * X[i][j] for i in range(m))
+			grads.append(gradient)
 			newThetas.append(thetas[j] - lRate * gradient)
 		thetas = newThetas
+		print(grads)
 	return thetas
 
 
@@ -38,17 +42,18 @@ if __name__ == "__main__":
 	except Exception as e:
 		sys.exit(f"An error occured while reading the dataset. {str(e)}")
 
+	f = ["Astronomy", "Ancient Runes", "Herbology", "Charms"]
 	ftrsPerHouse = {
-		"Gryffindor": ["Astronomy","Herbology","Divination","Muggle Studies","Ancient Runes","History of Magic","Transfiguration","Charms","Flying"],
-		"Slytherin": ["Astronomy","Herbology","Divination","Muggle Studies","Ancient Runes","History of Magic","Transfiguration","Charms","Flying"],
-		"Ravenclaw": ["Astronomy","Herbology","Divination","Muggle Studies","Ancient Runes","History of Magic","Transfiguration","Charms","Flying"],
-		"Hufflepuff": ["Astronomy","Herbology","Divination","Muggle Studies","Ancient Runes","History of Magic","Transfiguration","Charms","Flying"]
+		"Gryffindor": f,
+		"Slytherin": f + ["Divination"],
+		"Ravenclaw": f,
+		"Hufflepuff": f
 	}
 	l = ftrsPerHouse["Gryffindor"] + ftrsPerHouse["Slytherin"] + ftrsPerHouse["Ravenclaw"] + ftrsPerHouse["Hufflepuff"]
 	allFeatures = list(set(l))
 	ftrsPerHouse["all"] = allFeatures
-	learningRate = 0.001
-	iterations = 100
+	learningRate = 0.1
+	iterations = 500
 	
 	scaler = DslrRobustScaler(data, percentiles=(20,80))
 	scaledData = scaler.scale()

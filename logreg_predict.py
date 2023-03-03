@@ -33,7 +33,6 @@ if __name__ == "__main__":
 
     scaler = DslrRobustScaler(data, percentiles=(20,80))
     scaledData = scaler.scaleToModel(model)
-    print(scaledData.describe())
     
     predictions = []
 
