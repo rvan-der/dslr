@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from data_description import *
@@ -6,7 +8,11 @@ from data_processing import *
 
 colors = {"Gryffindor": "#AE0001", "Slytherin": "#2A623D", "Ravenclaw": "#3D5CC3", "Hufflepuff": "#FFDB00"}
 
-data = pd.read_csv('datasets/dataset_train.csv', index_col="Index").dropna()
+try:
+	data = pd.read_csv('datasets/dataset_train.csv', index_col="Index").dropna()
+except:
+    print("Error: could not read file")
+    exit(1)
 
 scaler = DslrRobustScaler(data, percentiles=(20,80))
 scData = scaler.scale()

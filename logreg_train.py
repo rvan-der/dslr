@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 import json
 import pandas as pd
@@ -15,7 +17,6 @@ def prepare_data(data, modelFtrs, house):
 
 
 def logreg(X, Y, thetas, iters, lRate):
-	print("plop")
 	m = len(Y)
 	for it in range(iters):
 		newThetas = []
@@ -25,7 +26,7 @@ def logreg(X, Y, thetas, iters, lRate):
 			grads.append(gradient)
 			newThetas.append(thetas[j] - lRate * gradient)
 		thetas = newThetas
-		print(grads)
+		# print(grads)
 	return thetas
 
 
