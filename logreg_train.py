@@ -1,10 +1,37 @@
 #!/usr/bin/env python3
 
 import sys
+import time
 import json
 import pandas as pd
 import numpy as np
+from threading import Thread
 from data_processing import *
+
+
+
+class LogregThread(Thread):
+	def __init__(self, X, Y, iters, lRate, house, model, progress):
+		Thread.__init__(self)
+		self.X = X
+		self.Y = Y
+		self.iters = iters
+		self.lRate = lRate
+		self.house = house
+		self.model = model
+		self.progress = progress
+
+	def run(self):
+		m = len(self.Y)
+		for it in range(self.iters):
+			thetas = self.model["thetas"][self.house]
+			newThetas = []
+			for j in range(len(thetas)):
+				gradient = 1 / m * sum((sigmoid(np.dot(self.X[i],thetas)) - self.Y[i]) * self.X[i][j] for i in range(m))
+				newThetas.append(thetas[j] - self.lRate * gradient)
+			self.model["thetas"][self.house] = newThetas
+			self.progress[self.house] += 1
+
 
 
 def prepare_data(data, modelFtrs, house):
@@ -16,22 +43,11 @@ def prepare_data(data, modelFtrs, house):
 
 
 
-def logreg(X, Y, thetas, iters, lRate):
-	m = len(Y)
-	for it in range(iters):
-		newThetas = []
-		grads = []
-		for j in range(len(thetas)):
-			gradient = 1 / m * sum((sigmoid(np.dot(X[i],thetas)) - Y[i]) * X[i][j] for i in range(m))
-			grads.append(gradient)
-			newThetas.append(thetas[j] - lRate * gradient)
-		thetas = newThetas
-		# print(grads)
-	return thetas
-
-
-
 if __name__ == "__main__":
+	
+	learningRate = 0.1
+	iterations = 200
+	houses = ["Gryffindor","Slytherin","Ravenclaw","Hufflepuff"]
 
 	argc = len(sys.argv)
 	if argc != 2:
@@ -42,31 +58,54 @@ if __name__ == "__main__":
 		data = pd.read_csv(fileName, index_col="Index").dropna()
 	except Exception as e:
 		sys.exit(f"An error occured while reading the dataset. {str(e)}")
-
-	f = ["Astronomy", "Ancient Runes", "Herbology", "Charms"]
-	ftrsPerHouse = {
-		"Gryffindor": f,
-		"Slytherin": f + ["Divination"],
-		"Ravenclaw": f,
-		"Hufflepuff": f
-	}
-	l = ftrsPerHouse["Gryffindor"] + ftrsPerHouse["Slytherin"] + ftrsPerHouse["Ravenclaw"] + ftrsPerHouse["Hufflepuff"]
-	allFeatures = list(set(l))
-	ftrsPerHouse["all"] = allFeatures
-	learningRate = 0.1
-	iterations = 500
 	
-	scaler = DslrRobustScaler(data, percentiles=(20,80))
+	scaler = DslrRobustScaler(data)
 	scaledData = scaler.scale()
+
+	ftrsPerHouse = {
+		"Gryffindor": ["Astronomy", "Ancient Runes", "Herbology", "Charms", "Flying", "Transfiguration", "History of Magic"],
+		"Slytherin": ["Astronomy", "Ancient Runes", "Herbology", "Charms", "Divination"],
+		"Ravenclaw": ["Astronomy", "Ancient Runes", "Herbology", "Charms", "Muggle Studies"],
+		"Hufflepuff": ["Astronomy", "Ancient Runes", "Herbology", "Charms"]
+	}
+	lst = ftrsPerHouse["Gryffindor"] + ftrsPerHouse["Slytherin"] + ftrsPerHouse["Ravenclaw"] + ftrsPerHouse["Hufflepuff"]
+	allFeatures = list(set(lst))
+	ftrsPerHouse["all"] = allFeatures
 	
+	# Initialise the model and threads progress.
 	model = {"features": ftrsPerHouse, "scaling": {}, "thetas": {}}
-
+	progress = {}
+	for house in houses:
+		model["thetas"][house] = [0] * (len(ftrsPerHouse[house]) + 1)
+		progress[house] = 0
 	model["scaling"] = scaler.allScalingParams()
-
-	for house in ["Gryffindor","Slytherin","Ravenclaw","Hufflepuff"]:
+	
+	# Prepare the threads
+	print("Loading threads...")
+	threads = []
+	for house in houses:
 		X,Y = prepare_data(scaledData, ftrsPerHouse[house], house)
-		nbFtrs = len(ftrsPerHouse[house])
-		model["thetas"][house] = logreg(X, Y, [0]*(nbFtrs+1), iterations, learningRate)
+		th = LogregThread(X, Y, iterations, learningRate, house, model, progress)
+		threads.append(th)
+
+	# Launch threads:
+	for th in threads:
+		th.start()
+
+	# Progress bar
+	print("Training...")
+	iterTotal = 4 * iterations
+	width = 50
+	while any([th.is_alive() for th in threads]):
+		progTotal = sum(progress[h] for h in houses)
+		full = int(progTotal / iterTotal * width)
+		empty = width - full
+		sys.stdout.write(f"[{'='*full + ' '*empty}]")
+		sys.stdout.flush()
+		sys.stdout.write("\r")
+		time.sleep(1)
+	else:
+		print(f"[{'='*width}]\nTraining done !")
 
 	try:
 		with open("dslr_model.json", "w") as jsonFile:

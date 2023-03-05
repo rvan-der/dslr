@@ -1,5 +1,5 @@
 import numpy as np
-from data_description import *
+from TinyStatistician import TinyStatistician
 
 
 
@@ -8,7 +8,19 @@ def sigmoid(x):
 
 
 
+def shortenName(name):
+	words = name.split()
+	if len(words) == 1:
+		return name[:7] + '.' if len(name) > 8 else name
+	if len(name) > 8:
+		return "".join([word[0] if word.lower() in ["the","of"] else word[0].upper() for word in words])
+	return name
+
+
+
 class DslrRobustScaler():
+
+	ts = TinyStatistician()
 
 	def __init__(self, data, percentiles=(25,75)):
 		self.data = data
@@ -17,22 +29,10 @@ class DslrRobustScaler():
 			if any([not isinstance(value, float) for value in data[feature]]):
 				continue
 			self.numericFeatures.append(feature)
-		self.percentiles = percentiles
-		self.medians = [median(data[feature]) for feature in self.numericFeatures]
-		self.ranges = [quantile(max(percentiles),100,data[feature]) - \
-		quantile(min(percentiles),100,data[feature]) for feature in self.numericFeatures]
-
-
-	def featureScalingParams(self, feature):
-		featureIndex = self.numericFeatures.index(feature)
-		return {"median":self.medians[featureIndex], "range":self.ranges[featureIndex]}
-
-
-	def allScalingParams(self):
-		model = {}
-		for i,feature in enumerate(self.numericFeatures):
-			model[feature] = {"median":self.medians[i], "range":self.ranges[i]}
-		return model
+		self.medians = [self.ts.median(list(data[feature])) for feature in self.numericFeatures]
+		self.ranges = [self.ts.percentile(list(data[feature]), max(percentiles)) -
+						self.ts.percentile(list(data[feature]), min(percentiles))
+						for feature in self.numericFeatures]
 
 
 	def scale(self):
@@ -40,6 +40,13 @@ class DslrRobustScaler():
 		for i,feature in enumerate(self.numericFeatures):
 			scaledData[feature] = scaledData[feature].apply(lambda x:(x - self.medians[i]) / self.ranges[i])
 		return scaledData
+
+
+	def allScalingParams(self):
+		model = {}
+		for i,feature in enumerate(self.numericFeatures):
+			model[feature] = {"median":self.medians[i], "range":self.ranges[i]}
+		return model
 
 
 	def scaleToModel(self, model):

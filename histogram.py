@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from matplotlib import rc as mplrc
 import pandas as pd
 import numpy as np
-from data_description import *
 from data_processing import *
 
 colors = {"Gryffindor": "#AE0001", "Slytherin": "#2A623D",
@@ -16,7 +15,7 @@ except:
     print("Error: could not read file")
     exit(1)
 
-scaler = DslrRobustScaler(data, percentiles=(20, 80))
+scaler = DslrRobustScaler(data)
 scData = scaler.scale()
 colorFeature = scData['Hogwarts House'].map(colors)
 
@@ -24,7 +23,7 @@ pltFeatures = [ft for ft in data.columns if ft not in
                ["First Name", "Last Name", "Birthday", "Best Hand", "Hogwarts House"]]
 nbFtr = len(pltFeatures)
 
-fig = plt.figure(figsize=(6, 12))
+fig = plt.figure(figsize=(6, 12), num="dslr")
 gspec = fig.add_gridspec(nbFtr, 1, hspace=0, wspace=0)
 axs = gspec.subplots()
 for x in range(nbFtr):
@@ -43,6 +42,7 @@ for x in range(nbFtr):
         axs[x].set_xticklabels([])
 
 
+fig.suptitle("Score distributions")
 fig.tight_layout()
 plt.legend(["Gryffindor", "Slytherin", "Ravenclaw", "Hufflepuff"],
            loc='lower left')

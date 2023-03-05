@@ -2,7 +2,6 @@
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from data_description import *
 from data_processing import *
 
 
@@ -14,7 +13,7 @@ except:
     print("Error: could not read file")
     exit(1)
 
-scaler = DslrRobustScaler(data, percentiles=(20,80))
+scaler = DslrRobustScaler(data)
 scData = scaler.scale()
 colorFeature = scData['Hogwarts House'].map(colors)
 
@@ -22,7 +21,7 @@ pltFeatures = [ft for ft in data.columns if ft not in\
 	["First Name","Last Name","Birthday","Best Hand", "Hogwarts House"]]
 nbFtr = len(pltFeatures)
 
-fig = plt.figure(figsize=(16,12))
+fig = plt.figure(figsize=(16,12), num="dslr")
 gspec = fig.add_gridspec(nbFtr, nbFtr, hspace=0, wspace=0)
 axs = gspec.subplots()
 for y in range(nbFtr):
@@ -40,5 +39,7 @@ for y in range(nbFtr):
 		axs[y][x].set(xlabel=shortenName(pltFeatures[x]), ylabel=shortenName(pltFeatures[y]))
 		axs[y][x].label_outer()
 
+fig.suptitle("Pick your features")
 fig.tight_layout()
+plt.savefig('pair_plot.png')
 plt.show()

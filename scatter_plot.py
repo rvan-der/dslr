@@ -2,7 +2,6 @@
 
 import matplotlib.pyplot as plt
 import pandas as pd
-from data_description import *
 from data_processing import *
 
 
@@ -14,26 +13,17 @@ except:
     print("Error: could not read file")
     exit(1)
 
-scaler = DslrRobustScaler(data, percentiles=(20,80))
+scaler = DslrRobustScaler(data)
 scData = scaler.scale()
 colorFeature = scData['Hogwarts House'].map(colors)
 
-pltFeatures = [ft for ft in data.columns if ft not in\
-    ["First Name","Last Name","Birthday","Best Hand", "Hogwarts House"]]
-nbFtr = len(pltFeatures)
-
-fig = plt.figure(figsize=(16,12))
-gspec = fig.add_gridspec(nbFtr, nbFtr, hspace=0, wspace=0)
-axs = gspec.subplots()
-for y in range(nbFtr):
-    for x in range(nbFtr):
-        if x < y:
-            axs[y][x].scatter(scData[pltFeatures[x]], scData[pltFeatures[y]], marker='.', c=colorFeature, alpha=0.35)
-            axs[y][x].set(xlabel=shortenName(pltFeatures[x]), ylabel=shortenName(pltFeatures[y]))
-            axs[y][x].label_outer()
-        else:
-            axs[y][x].set_axis_off()
-
+fig = plt.figure(figsize=(9,7), num="dslr")
+plt.scatter(scData["Defense Against the Dark Arts"], scData["Astronomy"], marker='.', c=colorFeature, alpha=0.35)
+plt.xlabel("Defense Against the Dark Arts")
+plt.ylabel("Astronomy")
+fig.suptitle("Similar features")
 fig.tight_layout()
+
+
 plt.savefig('scatter_plot.png')
 plt.show()

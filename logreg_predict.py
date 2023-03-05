@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 import json
 import pandas as pd
 import numpy as np
@@ -33,7 +34,7 @@ if __name__ == "__main__":
         missing = data[feature].isnull()
         data[feature] = [model["scaling"][feature]["median"] if missing[i] else x for i, x in enumerate(data[feature])]
 
-    scaler = DslrRobustScaler(data, percentiles=(20,80))
+    scaler = DslrRobustScaler(data)
     scaledData = scaler.scaleToModel(model)
     
     predictions = []

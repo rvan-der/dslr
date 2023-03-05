@@ -65,7 +65,7 @@ class TinyStatistician:
         y.sort()
         if p == 0:
             return float(y[0])
-        res = min(0, int(math.ceil(p * (len(y)) / 100)) - 1)
+        res = max(0, int(math.ceil(p * (len(y)) / 100)) - 1)
         return float(y[int(res)])
 
     def var(self, x):
